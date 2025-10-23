@@ -5,15 +5,18 @@ from .constants import BANNER, HELP
 from .sonnets import SONNETS
 
 def find_spans(text: str, pattern: str):
-    """Return [(start, end), ...] for all (possibly overlapping) matches.
-    Inputs should already be lowercased by the caller."""
-
+    if pattern == "" or len(pattern) > len(text):
+        return []
     spans = []
-
-    # ToDo 1: Copy your solution from the last exercise
-
+    for i in range(len(text) - len(pattern) + 1):
+        span = text[i:i + len(pattern)]
+        if span == pattern:
+            spans.append((i, i + len(pattern)))
     return spans
 
+    """Return [(start, end), ...] for all (possibly overlapping) matches.
+    Inputs should already be lowercased by the caller."""
+    # ToDo 1: Copy your solution from the last exercise
 
 def ansi_highlight(text: str, spans):
     if not spans:
@@ -72,16 +75,27 @@ def print_results(query: str, results, highlight: bool):
             print("  " + line_out)
 
 def combine_results(result1, result2):
-    # ToDo 3)
-    #  Merge the two search results:
-    #         - the number of matches,
-    #         - the spans in the title and
-    #         - the spans found in the individual lines
-    #  Returned the combined search result
-    combined = result1
-
+    combined = result1.copy()
+    combined["title_spans"] = result1["title_spans"] + result2["title_spans"]
+    merged_lines = {}
+    for line in result1["line_matches"]:
+        merged_lines[line["line_no"]] = line.copy()
+        for line in result2["line_matches"]:
+            if line["line_no"] in merged_lines:
+                merged_lines[line["line_no"]]["spans"] += line["spans"]
+            else:
+                merged_lines[line["line_no"]] = line.copy()
+    combined["line_matches"] = list(merged_lines.values())
+    combined["matches"] = len(combined["title_spans"]) + sum(len(lm["spans"]) for lm in combined["line_matches"])
     return combined
 
+
+# ToDo 3)
+#  Merge the two search results:
+#         - the number of matches,
+#         - the spans in the title and
+#         - the spans found in the individual lines
+#  Returned the combined search result
 
 def main() -> None:
     highlight = True
@@ -119,7 +133,7 @@ def main() -> None:
         combined_results = []
 
         #  ToDo 2) Split the raw input string into words using a built-in method of string
-        words = raw #  ... your code here ...
+        words = raw.split() #  ... your code here ...
 
         for word in words:
             # Searching for the word in all sonnets
