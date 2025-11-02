@@ -85,7 +85,7 @@ def combine_results(result1, result2):
                 merged_lines[line["line_no"]]["spans"] += line["spans"]
             else:
                 merged_lines[line["line_no"]] = line.copy()
-    combined["line_matches"] = list(merged_lines.values())
+    combined["line_matches"] = sorted(merged_lines.values(), key=lambda x: x["line_no"])
     combined["matches"] = len(combined["title_spans"]) + sum(len(lm["spans"]) for lm in combined["line_matches"])
     return combined
 
